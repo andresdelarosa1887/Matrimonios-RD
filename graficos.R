@@ -28,3 +28,20 @@ ggplot(total_pais, aes(x = periodo, y = divorcios_matrimonios, group= provincia)
   geom_hline(yintercept = 1, linetype = "dashed", color = "red") + 
   theme_minimal() 
 
+
+
+
+
+ubicacion_provincia <- which(edad_del_conyugue == "Provincia Baoruco", arr.ind = TRUE)
+ubicacion_fila <- ubicacion_provincia[1]
+provincia_sliced <- edad_del_conyugue[ubicacion_provincia[1]:nrow(edad_del_conyugue), ]
+
+ubicacion_inicio_sliced <- which(provincia_sliced == "Edad del contrayente", arr.ind = TRUE)
+ubicacion_termino_sliced <- which(provincia_sliced == "Total", arr.ind = TRUE)
+
+provincia_sliced <- provincia_sliced[ubicacion_inicio_sliced[[1]]:ubicacion_termino_sliced[[1]],]
+provincia_sliced[2, 2] <- "Edad"
+colnames(provincia_sliced) <- provincia_sliced[2, ]
+provincia_sliced <- provincia_sliced[3:nrow(provincia_sliced), 2:ncol(provincia_sliced)]
+provincia_sliced <- provincia_sliced %>% gather("periodo", "cantidad", 2:ncol(provincia_sliced))
+provincia_sliced$provincia <- "Provincia Baoruco"

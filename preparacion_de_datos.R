@@ -30,54 +30,52 @@ write_rds(uniones, "data/procesada_uniones.rds")
 
 ##Datos por provincia, por edad y por año
 edad_del_conyugue <- suppressMessages(suppressWarnings(read_excel("data/matrimonios/edades/matrimonios_edad_masculino_2001_2022.xlsx")))
-
-vector_provincias <- c("Distrito Nacional",                "Provincia Azua",                  
-                       "Provincia Baoruco" ,               "Provincia Barahona",               "Provincia Dajabón",               
-                       "Provincia Duarte"   ,              "Provincia El Seibo",               "Provincia Elías Piña" ,           
-                       "Provincia Espaillat" ,             "Provincia Hato Mayor",             "Provincia Hermanas Mirabal" ,     
-                       "Provincia Independencia",          "Provincia La Altagracia",          "Provincia La Romana"     ,        
-                       "Provincia La Vega"       ,         "Provincia María Trinidad Sánchez", "Provincia Monseñor Nouel"  ,      
-                       "Provincia Monte Cristi"   ,        "Provincia Monte Plata" ,           "Provincia Pedernales",            
-                       "Provincia Peravia",                "Provincia Puerto Plata",           "Provincia Samaná",                
-                       "Provincia San Cristóbal",          "Provincia San José De Ocoa",       "Provincia San Juan" ,             
-                       "Provincia San Pedro De Macorís",   "Provincia Sánchez Ramírez",        "Provincia Santiago",              
-                       "Provincia Santiago Rodríguez",     "Provincia Santo Domingo",          "Provincia Valverde")
-
-ubicacion_provincia <- which(edad_del_conyugue == "Provincia Baoruco", arr.ind = TRUE)
-ubicacion_fila <- ubicacion_provincia[1]
-provincia_sliced <- edad_del_conyugue[ubicacion_provincia[1]:nrow(edad_del_conyugue), ]
-
-ubicacion_inicio_sliced <- which(provincia_sliced == "Edad del contrayente", arr.ind = TRUE)
-ubicacion_termino_sliced <- which(provincia_sliced == "Total", arr.ind = TRUE)
-
-provincia_sliced <- provincia_sliced[ubicacion_inicio_sliced[[1]]:ubicacion_termino_sliced[[1]],]
-provincia_sliced[2, 2] <- "Edad"
-colnames(provincia_sliced) <- provincia_sliced[2, ]
-provincia_sliced <- provincia_sliced[3:nrow(provincia_sliced), 2:ncol(provincia_sliced)]
-provincia_sliced <- provincia_sliced %>% gather("periodo", "cantidad", 2:ncol(provincia_sliced))
-provincia_sliced$provincia <- "Provincia Baoruco"
+edad_de_la_conyugue <- suppressMessages(suppressWarnings(read_excel("data/matrimonios/edades/matrimonios_edad_femenino_2001_2022.xlsx")))
 
 
-por_provincia_edad <- list()
-for (nombre_provincia in vector_provincias){ 
-  ubicacion_provincia <- which(edad_del_conyugue == nombre_provincia, arr.ind = TRUE)
-  ubicacion_fila <- ubicacion_provincia[1]
-  provincia_sliced <- edad_del_conyugue[ubicacion_provincia[1]:nrow(edad_del_conyugue), ]
+
+limpiame_ONE_edad <- function(datos_sucios_one, nombre_variable= "edad", genero="masculino") { 
   
-  ubicacion_inicio_sliced <- which(provincia_sliced == "Edad del contrayente", arr.ind = TRUE)
-  ubicacion_termino_sliced <- which(provincia_sliced == "Total", arr.ind = TRUE)
+  vector_provincias <- c("Distrito Nacional",                "Provincia Azua",                  
+                         "Provincia Baoruco" ,               "Provincia Barahona",               "Provincia Dajabón",               
+                         "Provincia Duarte"   ,              "Provincia El Seibo",               "Provincia Elías Piña" ,           
+                         "Provincia Espaillat" ,             "Provincia Hato Mayor",             "Provincia Hermanas Mirabal" ,     
+                         "Provincia Independencia",          "Provincia La Altagracia",          "Provincia La Romana"     ,        
+                         "Provincia La Vega"       ,         "Provincia María Trinidad Sánchez", "Provincia Monseñor Nouel"  ,      
+                         "Provincia Monte Cristi"   ,        "Provincia Monte Plata" ,           "Provincia Pedernales",            
+                         "Provincia Peravia",                "Provincia Puerto Plata",           "Provincia Samaná",                
+                         "Provincia San Cristóbal",          "Provincia San José De Ocoa",       "Provincia San Juan" ,             
+                         "Provincia San Pedro De Macorís",   "Provincia Sánchez Ramírez",        "Provincia Santiago",              
+                         "Provincia Santiago Rodríguez",     "Provincia Santo Domingo",          "Provincia Valverde")
+
+    por_provincia_edad <- list()
+    for (nombre_provincia in vector_provincias){ 
+      ubicacion_provincia <- which(edad_del_conyugue == nombre_provincia, arr.ind = TRUE)
+      ubicacion_fila <- ubicacion_provincia[1]
+      provincia_sliced <- edad_del_conyugue[ubicacion_provincia[1]:nrow(edad_del_conyugue), ]
   
-  provincia_sliced <- provincia_sliced[ubicacion_inicio_sliced[[1]]:ubicacion_termino_sliced[[1]],]
-  provincia_sliced[2, 2] <- "Edad"
-  colnames(provincia_sliced) <- provincia_sliced[2, ]
-  provincia_sliced <- provincia_sliced[3:nrow(provincia_sliced), 2:ncol(provincia_sliced)]
-  provincia_sliced <- provincia_sliced %>% gather("periodo", "cantidad", 2:ncol(provincia_sliced))
-  provincia_sliced$provincia <- nombre_provincia
+      slicing <- ifelse(genero=="masculino","Edad del contrayente", "Edad de la contrayente" )
+      ubicacion_inicio_sliced <- which(provincia_sliced == slicing, arr.ind = TRUE)
+      ubicacion_termino_sliced <- which(provincia_sliced == "Total", arr.ind = TRUE)
+      
+      provincia_sliced <- provincia_sliced[ubicacion_inicio_sliced[[1]]:ubicacion_termino_sliced[[1]],]
+      provincia_sliced[2, 2] <- nombre_variable
+      colnames(provincia_sliced) <- provincia_sliced[2, ]
+      provincia_sliced <- provincia_sliced[3:nrow(provincia_sliced), 2:ncol(provincia_sliced)]
+      provincia_sliced <- provincia_sliced %>% gather("periodo", "cantidad", 2:ncol(provincia_sliced))
+      provincia_sliced$provincia <- nombre_provincia
+      
+      por_provincia_edad[[nombre_provincia]] <- provincia_sliced
+    }
+    
+    todos_por_provincia_edad <- do.call(rbind, por_provincia_edad)
+    rownames(todos_por_provincia_edad) <- NULL
 
-  por_provincia_edad[[nombre_provincia]] <- provincia_sliced
-  }
+return(todos_por_provincia_edad)
+}
 
-todos_por_provincia_edad <- do.call(rbind, por_provincia_edad)
+edad_del_conyugue <- limpiame_ONE_edad(edad_del_conyugue, "edad_conyugue", "masculino")
+edad_de_la_conyugue <- limpiame_ONE_edad(edad_de_la_conyugue, "edad_de_la_conyugue", "femenino")
 
 
 ##Funcion transformacion de datos
