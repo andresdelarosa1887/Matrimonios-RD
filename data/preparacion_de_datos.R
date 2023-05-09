@@ -28,6 +28,66 @@ write_rds(uniones, "data/procesada_uniones.rds")
 
 
 
+
+
+
+library(tidyverse)
+library(readxl)
+library(scales)
+
+##Datos por provincia y por año
+matrimonios_2001_2022 <- suppressMessages(suppressWarnings(read_excel("data/matrimonios/matrimonios_2001_2022.xlsx")))
+divorcios_2001_2022 <- suppressMessages(suppressWarnings(read_excel("data/divorcios/divorcios_2001_2022.xlsx")))
+
+
+##Transformacion de datos
+
+limpiar_registro_civil <- function(datos_sucios_one, nombre_variable="x") {
+  datos_sucios_one <- datos_sucios_one[11:44, 2:ncol(datos_sucios_one)]
+  datos_sucios_one[1,1] <- "provincia"
+  colnames(datos_sucios_one) <-  datos_sucios_one[1,]
+  datos_sucios_one <- datos_sucios_one[2:nrow(datos_sucios_one), ]
+  datos_sucios_one <- datos_sucios_one  %>% gather("periodo", "variable", 2:ncol(datos_sucios_one) )
+  datos_sucios_one$variable <- as.numeric(datos_sucios_one$variable)
+  colnames(datos_sucios_one)[3] <- nombre_variable
+  return(datos_sucios_one)
+}
+
+
+matrimonios_2001_2022 <- limpiar_registro_civil(matrimonios_2001_2022, "matrimonios")
+divorcios_2001_2022 <- limpiar_registro_civil(divorcios_2001_2022, "divorcios")
+colnames(divorcios_2001_2022)
+uniones <- left_join(matrimonios_2001_2022, divorcios_2001_2022, by= c("provincia", "periodo") )
+
+
+write_rds(uniones, "data/procesada_uniones.rds")
+r
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+library(tidyverse)
+library(readxl)
+library(scales)
+
+
+matrimonios_2001_2022 <- read_excel('data/matrimonios/matrimonios_2001_2022.xlsx')
+divorcios_2001_2022 <- read_excel('data/divorcios/divorcios_2001_2022.xlsx')
+
+
+
 ##Datos por provincia, por edad y por año
 edad_del_conyugue <- suppressMessages(suppressWarnings(read_excel("data/matrimonios/edades/matrimonios_edad_masculino_2001_2022.xlsx")))
 edad_de_la_conyugue <- suppressMessages(suppressWarnings(read_excel("data/matrimonios/edades/matrimonios_edad_femenino_2001_2022.xlsx")))
