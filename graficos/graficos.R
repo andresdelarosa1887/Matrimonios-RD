@@ -3,10 +3,11 @@ library(readxl)
 library(scales)
 
 library(ggplot2)
+uniones <- readRDS("data/procesada_uniones.rds")
 
 uniones_DN <- uniones[uniones$provincia=="Distrito Nacional",]
-
-ggplot(uniones_DN, aes(x = periodo, y = divorcios_matrimonios, group= provincia)) +
+colnames(uniones)
+ggplot(uniones_DN, aes(x = periodo, y = ratio_divorcio_matrimonio, group= provincia)) +
   geom_line() +
   labs(title = "Total de Divorcios/ Total de Matrimonios - Distrito Nacional R.D", x = "Año", y = "Divorcios/Matrimonios")  +
   scale_y_continuous(labels = percent_format())  +
@@ -19,6 +20,40 @@ total_pais <- uniones %>%
   group_by(periodo) %>% 
   summarise(total_matrimonios= sum(matrimonios), total_divorcios= sum(divorcios)) %>% 
   mutate(divorcios_matrimonios= total_divorcios/total_matrimonios , provincia= "total pais")
+
+
+# Convierte las cantidades a formato con comas
+total_pais$total_matrimonios <- format(total_pais$total_matrimonios, big.mark = ",", scientific = FALSE)
+total_pais$total_divorcios <- format(total_pais$total_divorcios, big.mark = ",", scientific = FALSE)
+
+total_pais$periodo <- as.factor(total_pais$periodo)
+# Crea el gráfico utilizando ggplot2
+ggplot(total_pais, aes(x = as.factor(periodo))) +
+  geom_line(aes(y = as.numeric(total_matrimonios), color = "Matrimonios"), size = 1.5) +
+  geom_line(aes(y = as.numeric(total_divorcios), color = "Divorcios"), size = 1.5) +
+  scale_y_continuous(labels = function(x) format(x, big.mark = ",", scientific = FALSE)) +
+  labs(title = "Évolution des Mariages et des Divorces en République Dominicaine",
+       x = "Année",
+       y = "Quantité",
+       color = "Type d'Événement") +
+  theme_minimal()
+
+
+
+
+
+
+
+
+
+
+
+
+
+ggplot(total_pais, aes(x = periodo, y = total_matrimonios, group= provincia)) +
+  geom_line() +
+  labs(title = "Total de Divorcios/ Total de Matrimonios - Distrito Nacional R.D", x = "Año", y = "Divorcios/Matrimonios")  +
+  theme_minimal() 
 
 
 ggplot(total_pais, aes(x = periodo, y = divorcios_matrimonios, group= provincia)) +
